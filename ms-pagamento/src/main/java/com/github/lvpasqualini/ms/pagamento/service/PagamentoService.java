@@ -7,6 +7,7 @@ import com.github.lvpasqualini.ms.pagamento.entities.Status;
 import com.github.lvpasqualini.ms.pagamento.exceptions.PagamentoAprovadoException;
 import com.github.lvpasqualini.ms.pagamento.exceptions.ResourceNotFoundException;
 import com.github.lvpasqualini.ms.pagamento.repositories.PagamentoRepository;
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -82,10 +83,17 @@ public class PagamentoService {
 
         pagamento.setStatus(Status.APROVADO);
         repository.save(pagamento);
-        pedidoClient.confirmarPagamento(pagamento.getPedidoId());
+
+        try {
+            pedidoClient.confirmarPagamento(pagamento.getPedidoId());
+        } catch (FeignException.NotFound e) {
+            throw new ResourceNotFoundException("Pedido não encontrado ID: " + pagamento.getPedidoId());
+        }catch (FeignException e) {
+            throw new RuntimeException("Falha ao comunicar com ms-pedidos", e);
+        }
+
         return new PagamentoDTO(pagamento);
     }
-
 
     private void mapperDtoToPagamento(PagamentoDTO pagamentoDTO, Pagamento pagamento) {
         pagamento.setValor(pagamentoDTO.getValor());
