@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @FeignClient("ms-pedidos")
 public interface PedidoClient {
     @RequestMapping(method = RequestMethod.PUT,
-                    value = ("/pedido/{pedidoId}/pagamento/confirmado"))
+                    value = ("/pedidos/{pedidoId}/pagamento/confirmado"))
     void confirmarPagamento(@PathVariable Long pedidoId);
 }
