@@ -95,6 +95,17 @@ public class PagamentoService {
         return new PagamentoDTO(pagamento);
     }
 
+    @Transactional
+    public PagamentoDTO alterarStatusDoPagamento(Long id) {
+        Pagamento pagamento = repository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Pagamento não encontrado. ID: " + id)
+        );
+
+        pagamento.setStatus(Status.CONFIRMACAO_PENDENTE);
+        pagamento = repository.save(pagamento);
+        return new PagamentoDTO(pagamento);
+    }
+
     private void mapperDtoToPagamento(PagamentoDTO pagamentoDTO, Pagamento pagamento) {
         pagamento.setValor(pagamentoDTO.getValor());
         pagamento.setNome(pagamentoDTO.getNome());
