@@ -1,6 +1,8 @@
 package com.github.lvpasqualini.ms.pagamento.controller;
 
 import com.github.lvpasqualini.ms.pagamento.dto.PagamentoDTO;
+import com.github.lvpasqualini.ms.pagamento.dto.PagamentoRequestDTO;
+import com.github.lvpasqualini.ms.pagamento.dto.PagamentoResponseDTO;
 import com.github.lvpasqualini.ms.pagamento.service.PagamentoService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jakarta.validation.Valid;
@@ -22,45 +24,46 @@ public class PagamentoController {
     private PagamentoService pagamentoService;
 
     @GetMapping
-    public ResponseEntity<List<PagamentoDTO>> findAll() {
+    public ResponseEntity<List<PagamentoResponseDTO>> findAll() {
          return ResponseEntity.ok(pagamentoService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PagamentoDTO> findById(@PathVariable Long id) {
+    public ResponseEntity<PagamentoResponseDTO> findById(@PathVariable Long id) {
         return ResponseEntity.ok(pagamentoService.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<PagamentoDTO> save(@Valid @RequestBody PagamentoDTO pagamentoDTO) {
+    public ResponseEntity<PagamentoResponseDTO> save(@Valid @RequestBody PagamentoRequestDTO pagamentoDTO) {
+        PagamentoResponseDTO responseDTO = pagamentoService.save(pagamentoDTO);
         URI uri = ServletUriComponentsBuilder
                 .fromCurrentRequestUri()
                 .path("/{id}")
-                .buildAndExpand(pagamentoDTO.getId())
+                .buildAndExpand(responseDTO.getId())
                 .toUri();
-        return ResponseEntity.created(uri).body(pagamentoService.save(pagamentoDTO));
+        return ResponseEntity.created(uri).body(responseDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PagamentoDTO> update(@PathVariable Long id,@Valid @RequestBody PagamentoDTO pagamentoDTO) {
-        pagamentoDTO = pagamentoService.update(id,pagamentoDTO);
-        return ResponseEntity.ok(pagamentoDTO);
+    public ResponseEntity<PagamentoResponseDTO> update(@PathVariable Long id,@Valid @RequestBody PagamentoRequestDTO pagamentoDTO) {
+        PagamentoResponseDTO responseDTO = pagamentoService.update(id,pagamentoDTO);
+        return ResponseEntity.ok(responseDTO);
     }
 
     @PatchMapping("/{id}/confirmar")
     @CircuitBreaker(name = "atualizarPedido",
                     fallbackMethod = "fallbackConfirmarPagamentoPendente")
-    public ResponseEntity<PagamentoDTO> confirmarPagamentoDoPedido(@PathVariable
+    public ResponseEntity<PagamentoResponseDTO> confirmarPagamentoDoPedido(@PathVariable
                                                                        @NotNull Long id) {
-        PagamentoDTO dto = pagamentoService.confirmarPagamentoDoPedido(id);
+        PagamentoResponseDTO dto = pagamentoService.confirmarPagamentoDoPedido(id);
 
         return ResponseEntity.ok(dto);
     }
 
-    public ResponseEntity<PagamentoDTO> fallbackConfirmarPagamentoPendente(Long id, Throwable e){
+    public ResponseEntity<PagamentoResponseDTO> fallbackConfirmarPagamentoPendente(Long id, Throwable e){
         // Registra o erro para fins de log/observabilidade
         log.error("Falha ao confirmar pedido {}. Ativando fallback. Erro: {}", id, e.getMessage());
-        PagamentoDTO dto = pagamentoService.alterarStatusDoPagamento(id);
+        PagamentoResponseDTO dto = pagamentoService.alterarStatusDoPagamento(id);
         // 503 - explicitar que o serviço destino falhou, mas ainda assim enviando o corpo.
         return ResponseEntity.status(503).body(dto);
     }

@@ -20,34 +20,24 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class PedidoDTO {
+public class PedidoResponseDTO {
     private Long id;
-
-    @NotBlank(message = "Nome é requerido")
-    @Size(min = 3, max = 100,message = "O nome deve ter entre 3 a 100 caracteres")
     private String nome;
-
-    @NotBlank(message = "CPF é requerido")
-    @Size(min = 11,max = 11, message = "O CPF deve ter 11 caracteres")
     private String cpf;
-
     private LocalDate data;
-
     @Enumerated(EnumType.STRING)
     private Status status;
-
     private BigDecimal valorTotal;
 
-    @NotEmpty(message = "Pedido deve ter pelo menos um item")
-    private List<@Valid ItemPedidoDTO> itens = new ArrayList<>();
+    private List<@Valid ItemPedidoResponseDTO> itens = new ArrayList<>();
 
-    public PedidoDTO(Pedido pedido) {
+    public PedidoResponseDTO(Pedido pedido) {
         this.id = pedido.getId();
         this.nome = pedido.getNome();
         this.cpf = pedido.getCpf();
         this.data = pedido.getData();
         this.status = pedido.getStatus();
         this.valorTotal = pedido.getValorTotal();
-        this.itens = pedido.getItens().stream().map(ItemPedidoDTO::new).toList();
+        this.itens = pedido.getItens().stream().map(ItemPedidoResponseDTO::new).toList();
     }
 }

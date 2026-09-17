@@ -2,6 +2,8 @@ package com.github.lvpasqualini.ms.pagamento.service;
 
 import com.github.lvpasqualini.ms.pagamento.client.PedidoClient;
 import com.github.lvpasqualini.ms.pagamento.dto.PagamentoDTO;
+import com.github.lvpasqualini.ms.pagamento.dto.PagamentoRequestDTO;
+import com.github.lvpasqualini.ms.pagamento.dto.PagamentoResponseDTO;
 import com.github.lvpasqualini.ms.pagamento.entities.Pagamento;
 import com.github.lvpasqualini.ms.pagamento.entities.Status;
 import com.github.lvpasqualini.ms.pagamento.exceptions.PagamentoAprovadoException;
@@ -26,29 +28,29 @@ public class PagamentoService {
     private PedidoClient pedidoClient;
 
     @Transactional(readOnly = true)
-    public List<PagamentoDTO> findAll() {
-        return repository.findAll().stream().map(PagamentoDTO::new).collect(Collectors.toList());
+    public List<PagamentoResponseDTO> findAll() {
+        return repository.findAll().stream().map(PagamentoResponseDTO::new).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public PagamentoDTO findById(Long id) {
+    public PagamentoResponseDTO findById(Long id) {
         Pagamento pagamento = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Recurso não encontrado com o ID: " +id)
         );
-        return new PagamentoDTO(pagamento);
+        return new PagamentoResponseDTO(pagamento);
     }
 
     @Transactional
-    public PagamentoDTO save(PagamentoDTO pagamentoDTO) {
+    public PagamentoResponseDTO save(PagamentoRequestDTO pagamentoDTO) {
         Pagamento pagamento = new Pagamento();
         mapperDtoToPagamento(pagamentoDTO,pagamento);
         pagamento.setStatus(Status.CRIADO);
         pagamento = repository.save(pagamento);
-        return new PagamentoDTO(pagamento);
+        return new PagamentoResponseDTO(pagamento);
     }
 
     @Transactional
-    public PagamentoDTO update(Long id, PagamentoDTO pagamentoDTO) {
+    public PagamentoResponseDTO update(Long id, PagamentoRequestDTO requestDTO) {
         try {
             Pagamento pagamento = repository.getReferenceById(id);
 
@@ -58,10 +60,10 @@ public class PagamentoService {
                 );
             }
 
-            mapperDtoToPagamento(pagamentoDTO,pagamento);
-            pagamento.setStatus(pagamentoDTO.getStatus());
+            mapperDtoToPagamento(requestDTO,pagamento);
+            pagamento.setStatus(Status.CRIADO);
             pagamento = repository.save(pagamento);
-            return new PagamentoDTO(pagamento);
+            return new PagamentoResponseDTO(pagamento);
         }catch (EntityNotFoundException e) {
             throw new ResourceNotFoundException("Recurso não encontrado com o ID: " + id);
         }
@@ -76,7 +78,7 @@ public class PagamentoService {
     }
 
     @Transactional
-    public PagamentoDTO confirmarPagamentoDoPedido(Long id) {
+    public PagamentoResponseDTO confirmarPagamentoDoPedido(Long id) {
         Pagamento pagamento = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Pagamento não encontrado com o ID: " +id)
         );
@@ -92,21 +94,21 @@ public class PagamentoService {
             throw new RuntimeException("Falha ao comunicar com ms-pedidos", e);
         }
 
-        return new PagamentoDTO(pagamento);
+        return new PagamentoResponseDTO(pagamento);
     }
 
     @Transactional
-    public PagamentoDTO alterarStatusDoPagamento(Long id) {
+    public PagamentoResponseDTO alterarStatusDoPagamento(Long id) {
         Pagamento pagamento = repository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Pagamento não encontrado. ID: " + id)
         );
 
         pagamento.setStatus(Status.CONFIRMACAO_PENDENTE);
         pagamento = repository.save(pagamento);
-        return new PagamentoDTO(pagamento);
+        return new PagamentoResponseDTO(pagamento);
     }
 
-    private void mapperDtoToPagamento(PagamentoDTO pagamentoDTO, Pagamento pagamento) {
+    private void mapperDtoToPagamento(PagamentoRequestDTO pagamentoDTO, Pagamento pagamento) {
         pagamento.setValor(pagamentoDTO.getValor());
         pagamento.setNome(pagamentoDTO.getNome());
         pagamento.setNumeroCartao(pagamentoDTO.getNumeroCartao());

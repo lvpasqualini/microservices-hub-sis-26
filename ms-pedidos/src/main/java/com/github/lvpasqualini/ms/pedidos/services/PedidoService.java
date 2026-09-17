@@ -1,8 +1,8 @@
 package com.github.lvpasqualini.ms.pedidos.services;
 
-import com.github.lvpasqualini.ms.pedidos.controller.PedidoController;
-import com.github.lvpasqualini.ms.pedidos.dto.ItemPedidoDTO;
-import com.github.lvpasqualini.ms.pedidos.dto.PedidoDTO;
+import com.github.lvpasqualini.ms.pedidos.dto.ItemPedidoResponseDTO;
+import com.github.lvpasqualini.ms.pedidos.dto.PedidoRequestDTO;
+import com.github.lvpasqualini.ms.pedidos.dto.PedidoResponseDTO;
 import com.github.lvpasqualini.ms.pedidos.entities.ItemDoPedido;
 import com.github.lvpasqualini.ms.pedidos.entities.Pedido;
 import com.github.lvpasqualini.ms.pedidos.entities.Status;
@@ -27,32 +27,32 @@ public class PedidoService {
     private ItemDoPedidoRepository itemDoPedidoRepository;
 
     @Transactional(readOnly = true)
-    public List<PedidoDTO> findAll() {
+    public List<PedidoResponseDTO> findAll() {
         return pedidoRepository.findAll().stream()
-                .map(PedidoDTO::new).collect(Collectors.toList());
+                .map(PedidoResponseDTO::new).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public PedidoDTO findById(Long id) {
+    public PedidoResponseDTO findById(Long id) {
         Pedido pedido = pedidoRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Recurso não encontrado com ID: " + id)
         );
-        return new PedidoDTO(pedido);
+        return new PedidoResponseDTO(pedido);
     }
 
     @Transactional
-    public PedidoDTO savePedido(PedidoDTO pedidoDTO) {
+    public PedidoResponseDTO savePedido(PedidoRequestDTO pedidoDTO) {
         Pedido pedido = new Pedido();
         pedido.setData(LocalDate.now());
         pedido.setStatus(Status.CRIADO);
         mapDtoToPedido(pedidoDTO,pedido);
         pedido.calcularValorTotalPedido();
         pedido = pedidoRepository.save(pedido);
-        return new PedidoDTO(pedido);
+        return new PedidoResponseDTO(pedido);
     }
 
     @Transactional
-    public PedidoDTO updatePedido(Long id, PedidoDTO pedidoDTO) {
+    public PedidoResponseDTO updatePedido(Long id, PedidoRequestDTO pedidoDTO) {
         Pedido pedido = pedidoRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Pedido com ID: " + id + " não encontrado")
         );
@@ -67,7 +67,7 @@ public class PedidoService {
         mapDtoToPedido(pedidoDTO,pedido);
         pedido.calcularValorTotalPedido();
         pedido = pedidoRepository.save(pedido);
-        return new PedidoDTO(pedido);
+        return new PedidoResponseDTO(pedido);
     }
 
     @Transactional
@@ -90,11 +90,11 @@ public class PedidoService {
         pedidoRepository.save(pedido.get());
     }
 
-    private void mapDtoToPedido(PedidoDTO pedidoDTO, Pedido pedido) {
+    private void mapDtoToPedido(PedidoRequestDTO pedidoDTO, Pedido pedido) {
         pedido.setNome(pedidoDTO.getNome());
         pedido.setCpf(pedidoDTO.getCpf());
 
-        for (ItemPedidoDTO itemDTO : pedidoDTO.getItens()) {
+        for (ItemPedidoResponseDTO itemDTO : pedidoDTO.getItens()) {
             ItemDoPedido itemPedido = new ItemDoPedido();
             itemPedido.setQuantidade(itemDTO.getQuantidade());
             itemPedido.setDescricao(itemDTO.getDescricao());

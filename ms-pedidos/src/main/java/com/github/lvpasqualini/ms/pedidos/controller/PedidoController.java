@@ -1,6 +1,7 @@
 package com.github.lvpasqualini.ms.pedidos.controller;
 
-import com.github.lvpasqualini.ms.pedidos.dto.PedidoDTO;
+import com.github.lvpasqualini.ms.pedidos.dto.PedidoRequestDTO;
+import com.github.lvpasqualini.ms.pedidos.dto.PedidoResponseDTO;
 import com.github.lvpasqualini.ms.pedidos.services.PedidoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,32 +25,32 @@ public class PedidoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PedidoDTO>> findAll() {
+    public ResponseEntity<List<PedidoResponseDTO>> findAll() {
         return ResponseEntity.ok(pedidoService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PedidoDTO> findById(@PathVariable Long id) {
-        PedidoDTO pedidoDTO = pedidoService.findById(id);
+    public ResponseEntity<PedidoResponseDTO> findById(@PathVariable Long id) {
+        PedidoResponseDTO pedidoDTO = pedidoService.findById(id);
         return ResponseEntity.ok(pedidoDTO);
     }
 
     @PostMapping
-    public ResponseEntity<PedidoDTO> createPedido(@Valid @RequestBody PedidoDTO pedidoDTO) {
-        pedidoDTO = pedidoService.savePedido(pedidoDTO);
+    public ResponseEntity<PedidoResponseDTO> createPedido(@Valid @RequestBody PedidoRequestDTO pedidoDTO) {
+        PedidoResponseDTO responseDTO = pedidoService.savePedido(pedidoDTO);
 
         URI uri = ServletUriComponentsBuilder
                 .fromCurrentRequestUri()
                 .path("/{id}")
-                .buildAndExpand(pedidoDTO.getId())
+                .buildAndExpand(responseDTO.getId())
                 .toUri();
 
-        return ResponseEntity.created(uri).body(pedidoDTO);
+        return ResponseEntity.created(uri).body(responseDTO);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PedidoDTO> updatePedido(@Valid @PathVariable Long id, @RequestBody PedidoDTO pedidoDTO) {
-        PedidoDTO dto = pedidoService.updatePedido(id,pedidoDTO);
+    public ResponseEntity<PedidoResponseDTO> updatePedido(@Valid @PathVariable Long id, @RequestBody PedidoRequestDTO pedidoDTO) {
+        PedidoResponseDTO dto = pedidoService.updatePedido(id,pedidoDTO);
 
         return ResponseEntity.ok(dto);
     }
