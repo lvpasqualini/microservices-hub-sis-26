@@ -1,6 +1,8 @@
 package com.github.lvpasqualini.ms.pagamento.service;
 
 import com.github.lvpasqualini.ms.pagamento.dto.PagamentoDTO;
+import com.github.lvpasqualini.ms.pagamento.dto.PagamentoRequestDTO;
+import com.github.lvpasqualini.ms.pagamento.dto.PagamentoResponseDTO;
 import com.github.lvpasqualini.ms.pagamento.entities.Pagamento;
 import com.github.lvpasqualini.ms.pagamento.exceptions.ResourceNotFoundException;
 import com.github.lvpasqualini.ms.pagamento.repositories.PagamentoRepository;
@@ -68,7 +70,7 @@ public class PagamentoServiceTest {
                 .thenReturn(Optional.of(pagamento));
 
         // Act
-        PagamentoDTO result = pagamentoService.findById(existingId);
+        PagamentoResponseDTO result = pagamentoService.findById(existingId);
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals(pagamento.getId(), result.getId());
@@ -84,9 +86,9 @@ public class PagamentoServiceTest {
         pagamento.setId(null);
         Mockito.when(pagamentoRepository.save(any(Pagamento.class)))
                 .thenReturn(pagamento);
-        PagamentoDTO inputDto = new PagamentoDTO(pagamento);
+        PagamentoRequestDTO inputDto = new PagamentoRequestDTO(pagamento);
         //Act
-        PagamentoDTO result = pagamentoService.save(inputDto);
+        PagamentoResponseDTO result = pagamentoService.save(inputDto);
         //Assert
         Assertions.assertNotNull(result);
         Assertions.assertEquals(pagamento.getId(),result.getId());
@@ -102,7 +104,7 @@ public class PagamentoServiceTest {
         Mockito.when(pagamentoRepository.getReferenceById(id)).thenReturn(pagamento);
         Mockito.when(pagamentoRepository.save(any(Pagamento.class))).thenReturn(pagamento);
         //Act
-        PagamentoDTO result = pagamentoService.update(id,new PagamentoDTO(pagamento));
+        PagamentoResponseDTO result = pagamentoService.update(id,new PagamentoRequestDTO(pagamento));
         //Assert e Verify
         Assertions.assertNotNull(result);
         Assertions.assertEquals(id, result.getId());
@@ -120,7 +122,7 @@ public class PagamentoServiceTest {
                 .thenThrow(EntityNotFoundException.class);
 
         // Criação do objeto inputDto que será passado como parâmetro para o método de atualização
-        PagamentoDTO inputDto = new PagamentoDTO(pagamento);
+        PagamentoRequestDTO inputDto = new PagamentoRequestDTO(pagamento);
 
         // Assegura que, quando o método updatePagamento for chamado, uma exceção do tipo ResourceNotFoundException
         // será lançada
